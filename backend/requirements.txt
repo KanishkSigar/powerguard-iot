@@ -1,0 +1,30 @@
+# PowerGuard IoT — Backend Dependencies
+
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+
+# MQTT Client
+paho-mqtt==1.6.1
+
+# InfluxDB Client
+influxdb-client==1.40.0
+
+# Data Processing
+python-dotenv==1.0.1
+
+# JSON Schema / Validation
+pydantic==2.9.0
+
+# CORS
+starlette==0.38.0
+
+# ML / Anomaly Detection (Phase 7)
+scikit-learn==1.5.0
+numpy==1.26.4
+pandas==2.2.0
+joblib==1.4.2
+
+# Alerts (Phase 8)
+python-telegram-bot==21.3
+aiosmtplib==3.0.1
