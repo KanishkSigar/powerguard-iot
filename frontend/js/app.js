@@ -187,7 +187,10 @@ async function updateRealtime() {
         const energyKwh = parseFloat(main.energy_kwh);
         const cost = (energyKwh * CONFIG.tariffRate).toFixed(2);
         document.getElementById('rt-cost').textContent = `₹ ${cost}`;
-        document.getElementById('rt-monthly-cost').textContent = `₹ ${(cost * 30).toFixed(2)}`;
+        const monthlyCostEl = document.getElementById('rt-monthly-cost');
+        if (monthlyCostEl) {
+            monthlyCostEl.textContent = `₹ ${(cost * 30).toFixed(2)}`;
+        }
 
         // Update device status
         updateDeviceStatus('online');
@@ -287,30 +290,30 @@ function updateRealtimeChart(channels) {
                     {
                         label: 'Main Line',
                         data: realtimeHistory.main || [],
-                        borderColor: '#0f172a',
-                        backgroundColor: 'rgba(15, 23, 42, 0.05)',
+                        borderColor: '#0f766e',
+                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
                         fill: true,
-                        tension: 0,
+                        tension: 0.4,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
                     {
                         label: 'Channel 1',
                         data: realtimeHistory.channel1 || [],
-                        borderColor: '#64748b',
-                        backgroundColor: 'rgba(100, 116, 139, 0.05)',
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
                         fill: true,
-                        tension: 0,
+                        tension: 0.4,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
                     {
                         label: 'Channel 2',
                         data: realtimeHistory.channel2 || [],
-                        borderColor: '#94a3b8',
-                        backgroundColor: 'rgba(148, 163, 184, 0.05)',
+                        borderColor: '#ea580c',
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
                         fill: true,
-                        tension: 0,
+                        tension: 0.4,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
@@ -359,10 +362,10 @@ async function loadHistory() {
         datasets: [{
             label: `Power — ${channel}`,
             data: power,
-            borderColor: '#0f172a',
-            backgroundColor: 'rgba(15, 23, 42, 0.05)',
+            borderColor: '#0f766e',
+            backgroundColor: 'rgba(15, 118, 110, 0.1)',
             fill: true,
-            tension: 0,
+            tension: 0.3,
             borderWidth: 2,
             pointRadius: power.length > 100 ? 0 : 2,
         }],
@@ -374,10 +377,10 @@ async function loadHistory() {
         datasets: [{
             label: `Voltage — ${channel}`,
             data: voltage,
-            borderColor: '#64748b',
-            backgroundColor: 'rgba(100, 116, 139, 0.05)',
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
             fill: true,
-            tension: 0,
+            tension: 0.3,
             borderWidth: 2,
             pointRadius: voltage.length > 100 ? 0 : 2,
         }],
@@ -417,10 +420,10 @@ async function loadUsageData() {
         datasets: [{
             label: 'Daily kWh',
             data: kwh,
-            backgroundColor: kwh.map(v => v > avgKwh * 1.5 ? '#ef4444' : '#0f172a'),
+            backgroundColor: kwh.map(v => v > avgKwh * 1.5 ? '#ea580c' : '#0f766e'),
             borderColor: '#ffffff',
             borderWidth: 1,
-            borderRadius: 2,
+            borderRadius: 4,
         }],
     }, 'Energy (kWh)', 'bar');
 
@@ -444,13 +447,13 @@ async function loadPeakHours() {
     const labels = hourly.map(h => `${h.hour}:00`);
     const power = hourly.map(h => h.avg_power_watts);
 
-    // Color bars by intensity (using slate for normal, red for high)
+    // Color bars by intensity
     const maxPower = Math.max(...power, 1);
     const colors = power.map(p => {
         const ratio = p / maxPower;
-        if (ratio > 0.8) return '#ef4444';
-        if (ratio > 0.5) return '#64748b';
-        return '#cbd5e1';
+        if (ratio > 0.8) return '#ea580c';
+        if (ratio > 0.5) return '#f59e0b';
+        return '#ccfbf1';
     });
 
     renderChart('peak-hours-chart', 'peakHours', {
@@ -461,7 +464,7 @@ async function loadPeakHours() {
             backgroundColor: colors,
             borderColor: '#ffffff',
             borderWidth: 1,
-            borderRadius: 2,
+            borderRadius: 4,
         }],
     }, 'Average Power (Watts)', 'bar');
 
