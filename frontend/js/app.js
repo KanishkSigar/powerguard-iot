@@ -201,11 +201,6 @@ function animateValue(elementId, newValue) {
     const el = document.getElementById(elementId);
     if (el.textContent !== String(newValue)) {
         el.textContent = newValue;
-        el.style.transition = 'color 0.3s';
-        el.style.color = '#38bdf8';
-        setTimeout(() => {
-            el.style.color = '';
-        }, 300);
     }
 }
 
@@ -213,16 +208,12 @@ function updatePowerFactorLabel(pf) {
     const label = document.getElementById('pf-label');
     if (pf >= 0.95) {
         label.textContent = 'Excellent';
-        label.style.color = '#34d399';
     } else if (pf >= 0.85) {
         label.textContent = 'Good';
-        label.style.color = '#fbbf24';
     } else if (pf >= 0.7) {
         label.textContent = 'Fair';
-        label.style.color = '#fb923c';
     } else {
         label.textContent = 'Poor';
-        label.style.color = '#f87171';
     }
 }
 
@@ -296,30 +287,30 @@ function updateRealtimeChart(channels) {
                     {
                         label: 'Main Line',
                         data: realtimeHistory.main || [],
-                        borderColor: '#38bdf8',
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: '#0f172a',
+                        backgroundColor: 'rgba(15, 23, 42, 0.05)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
                     {
                         label: 'Channel 1',
                         data: realtimeHistory.channel1 || [],
-                        borderColor: '#a78bfa',
-                        backgroundColor: 'rgba(167, 139, 250, 0.05)',
+                        borderColor: '#64748b',
+                        backgroundColor: 'rgba(100, 116, 139, 0.05)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
                     {
                         label: 'Channel 2',
                         data: realtimeHistory.channel2 || [],
-                        borderColor: '#34d399',
-                        backgroundColor: 'rgba(52, 211, 153, 0.05)',
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'rgba(148, 163, 184, 0.05)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0,
                         borderWidth: 2,
                         pointRadius: 0,
                     },
@@ -368,10 +359,10 @@ async function loadHistory() {
         datasets: [{
             label: `Power — ${channel}`,
             data: power,
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            borderColor: '#0f172a',
+            backgroundColor: 'rgba(15, 23, 42, 0.05)',
             fill: true,
-            tension: 0.3,
+            tension: 0,
             borderWidth: 2,
             pointRadius: power.length > 100 ? 0 : 2,
         }],
@@ -383,10 +374,10 @@ async function loadHistory() {
         datasets: [{
             label: `Voltage — ${channel}`,
             data: voltage,
-            borderColor: '#fbbf24',
-            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+            borderColor: '#64748b',
+            backgroundColor: 'rgba(100, 116, 139, 0.05)',
             fill: true,
-            tension: 0.3,
+            tension: 0,
             borderWidth: 2,
             pointRadius: voltage.length > 100 ? 0 : 2,
         }],
@@ -426,10 +417,10 @@ async function loadUsageData() {
         datasets: [{
             label: 'Daily kWh',
             data: kwh,
-            backgroundColor: kwh.map(v => v > avgKwh * 1.5 ? 'rgba(248, 113, 113, 0.6)' : 'rgba(56, 189, 248, 0.5)'),
-            borderColor: kwh.map(v => v > avgKwh * 1.5 ? '#f87171' : '#38bdf8'),
+            backgroundColor: kwh.map(v => v > avgKwh * 1.5 ? '#ef4444' : '#0f172a'),
+            borderColor: '#ffffff',
             borderWidth: 1,
-            borderRadius: 4,
+            borderRadius: 2,
         }],
     }, 'Energy (kWh)', 'bar');
 
@@ -453,13 +444,13 @@ async function loadPeakHours() {
     const labels = hourly.map(h => `${h.hour}:00`);
     const power = hourly.map(h => h.avg_power_watts);
 
-    // Color bars by intensity
+    // Color bars by intensity (using slate for normal, red for high)
     const maxPower = Math.max(...power, 1);
     const colors = power.map(p => {
         const ratio = p / maxPower;
-        if (ratio > 0.8) return 'rgba(248, 113, 113, 0.6)';
-        if (ratio > 0.5) return 'rgba(251, 191, 36, 0.6)';
-        return 'rgba(52, 211, 153, 0.5)';
+        if (ratio > 0.8) return '#ef4444';
+        if (ratio > 0.5) return '#64748b';
+        return '#cbd5e1';
     });
 
     renderChart('peak-hours-chart', 'peakHours', {
@@ -468,9 +459,9 @@ async function loadPeakHours() {
             label: 'Avg Power (W)',
             data: power,
             backgroundColor: colors,
-            borderColor: colors.map(c => c.replace('0.6', '1').replace('0.5', '1')),
+            borderColor: '#ffffff',
             borderWidth: 1,
-            borderRadius: 4,
+            borderRadius: 2,
         }],
     }, 'Average Power (Watts)', 'bar');
 
@@ -579,21 +570,21 @@ function getChartOptions(yLabel, animate = false) {
             legend: {
                 display: true,
                 labels: {
-                    color: '#94a3b8',
+                    color: '#475569',
                     font: { family: 'Inter', size: 12 },
                     usePointStyle: true,
-                    pointStyle: 'circle',
+                    pointStyle: 'rect',
                     padding: 16,
                 },
             },
             tooltip: {
-                backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                titleColor: '#f1f5f9',
-                bodyColor: '#94a3b8',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
+                backgroundColor: '#0f172a',
+                titleColor: '#ffffff',
+                bodyColor: '#e2e8f0',
+                borderColor: '#e2e8f0',
+                borderWidth: 0,
                 padding: 12,
-                cornerRadius: 8,
+                cornerRadius: 4,
                 titleFont: { family: 'Inter', weight: '600' },
                 bodyFont: { family: 'Inter' },
             },
@@ -601,28 +592,28 @@ function getChartOptions(yLabel, animate = false) {
         scales: {
             x: {
                 ticks: {
-                    color: '#64748b',
+                    color: '#94a3b8',
                     font: { family: 'Inter', size: 11 },
                     maxRotation: 0,
                     maxTicksLimit: 12,
                 },
                 grid: {
-                    color: 'rgba(255, 255, 255, 0.04)',
+                    color: '#f1f5f9',
                 },
             },
             y: {
                 title: {
                     display: true,
                     text: yLabel,
-                    color: '#94a3b8',
-                    font: { family: 'Inter', size: 12 },
+                    color: '#475569',
+                    font: { family: 'Inter', size: 12, weight: '500' },
                 },
                 ticks: {
-                    color: '#64748b',
+                    color: '#94a3b8',
                     font: { family: 'Inter', size: 11 },
                 },
                 grid: {
-                    color: 'rgba(255, 255, 255, 0.04)',
+                    color: '#f1f5f9',
                 },
             },
         },
@@ -669,11 +660,9 @@ async function saveSettings() {
 
     // Visual feedback
     const btn = document.getElementById('save-settings');
-    btn.textContent = '✓ Saved!';
-    btn.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+    btn.textContent = 'Saved';
     setTimeout(() => {
-        btn.textContent = 'Save Settings';
-        btn.style.background = '';
+        btn.textContent = 'Save Configuration';
     }, 2000);
 }
 
