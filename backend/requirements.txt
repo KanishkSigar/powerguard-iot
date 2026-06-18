@@ -28,3 +28,6 @@ joblib==1.4.2
 # Alerts (Phase 8)
 python-telegram-bot==21.3
 aiosmtplib==3.0.1
+
+# Reporting
+reportlab==4.0.4
