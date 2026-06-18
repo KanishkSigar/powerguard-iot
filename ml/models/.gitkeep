@@ -1,0 +1,2 @@
+# ML model files are gitignored (too large for version control)
+# Run train_model.py to generate: isolation_forest.pkl, scaler.pkl
