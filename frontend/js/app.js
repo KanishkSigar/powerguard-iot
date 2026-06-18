@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initRangeButtons();
     initSettings();
+    initReports();
     initMobileMenu();
     startRealtimeUpdates();
     loadSettings();
@@ -431,6 +432,20 @@ async function loadUsageData() {
     const usageChannel = document.getElementById('usage-channel');
     usageChannel.removeEventListener('change', loadUsageData);
     usageChannel.addEventListener('change', loadUsageData);
+}
+
+// ----------------------
+// Reports
+// ----------------------
+
+function initReports() {
+    const btn = document.getElementById('btn-download-report');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            const channel = document.getElementById('usage-channel')?.value || 'main';
+            window.open(`${CONFIG.apiUrl}/api/reports/monthly?channel=${channel}`, '_blank');
+        });
+    }
 }
 
 // ----------------------

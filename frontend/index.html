@@ -217,11 +217,16 @@
                 <div class="page" id="page-usage">
                     <div class="section-header">
                         <h3>Energy Usage</h3>
-                        <select id="usage-channel" class="select-input">
-                            <option value="main">Main Line</option>
-                            <option value="channel1">Channel 1</option>
-                            <option value="channel2">Channel 2</option>
-                        </select>
+                        <div class="filter-group" style="display: flex; gap: 10px; align-items: center;">
+                            <select id="usage-channel" class="select-input">
+                                <option value="main">Main Line</option>
+                                <option value="channel1">Channel 1</option>
+                                <option value="channel2">Channel 2</option>
+                            </select>
+                            <button id="btn-download-report" class="btn" style="display: flex; gap: 5px; align-items: center;">
+                                <i data-lucide="download"></i> Report
+                            </button>
+                        </div>
                     </div>
 
                     <div class="cards-grid three-col">
