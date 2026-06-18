@@ -13,6 +13,18 @@ import paho.mqtt.client as mqtt
 
 from app.config import settings
 from app.database import db
+from app.alert_service import alert_service
+
+# Lazy import to avoid circular dependency
+_detector = None
+def get_detector():
+    global _detector
+    if _detector is None:
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+        from ml.anomaly_detector import detector
+        _detector = detector
+    return _detector
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +35,10 @@ readings_lock = threading.Lock()
 
 # Device status tracking
 device_status: dict[str, str] = {}
+
+# Channel history buffer for duration-based anomaly checks
+channel_history: dict[str, list[dict]] = {}
+HISTORY_BUFFER_SIZE = 100  # Keep last ~200 seconds of data (at 2s interval)
 
 
 def on_connect(client, userdata, flags, rc):
@@ -84,6 +100,29 @@ def on_message(client, userdata, msg):
 
         # Write to InfluxDB
         db.write_reading(data)
+
+        # Update channel history buffer
+        hist_key = f"{device_id}/{channel}"
+        if hist_key not in channel_history:
+            channel_history[hist_key] = []
+        channel_history[hist_key].append(data)
+        if len(channel_history[hist_key]) > HISTORY_BUFFER_SIZE:
+            channel_history[hist_key] = channel_history[hist_key][-HISTORY_BUFFER_SIZE:]
+
+        # Run anomaly detection
+        try:
+            detector = get_detector()
+            anomalies = detector.check_reading(
+                reading=data,
+                channel_history=channel_history.get(hist_key, []),
+            )
+            for anomaly in anomalies:
+                logger.warning("Anomaly detected: %s on %s — %s",
+                              anomaly["type"], channel, anomaly["description"])
+                db.write_anomaly(anomaly)
+                alert_service.send_alert(anomaly)
+        except Exception as e:
+            logger.error("Anomaly detection error: %s", e)
 
     except json.JSONDecodeError as e:
         logger.error("Invalid JSON payload on %s: %s", topic, e)
