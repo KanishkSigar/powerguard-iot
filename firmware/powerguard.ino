@@ -6,8 +6,18 @@
 // ============================================================
 
 #include <WiFi.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include "EmonLib.h"
 #include "config.h"
+
+// ----------------------
+// OLED Display
+// ----------------------
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+unsigned int displayPage = 0;  // Rotate between channels on display
 
 // ----------------------
 // Energy Monitor Instances
@@ -91,6 +101,76 @@ void setupSensors() {
   analogReadResolution(12);
 
   Serial.println("[Sensors] Energy monitors initialized.");
+}
+
+// ----------------------
+// OLED Display Setup
+// ----------------------
+
+void setupDisplay() {
+  Serial.println("[Display] Initializing OLED...");
+
+  Wire.begin(PIN_OLED_SDA, PIN_OLED_SCL);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    Serial.println("[Display] SSD1306 allocation failed! Continuing without display.");
+    return;
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 10);
+  display.println("PowerGuard IoT");
+  display.setCursor(10, 25);
+  display.println("Starting up...");
+  display.display();
+
+  Serial.println("[Display] OLED initialized.");
+}
+
+// ----------------------
+// Update OLED Display
+// ----------------------
+
+void updateDisplay() {
+  EnergyReading* r;
+  const char* label;
+
+  // Cycle through channels every reading
+  switch (displayPage % 3) {
+    case 0: r = &readingMain; label = "MAIN LINE"; break;
+    case 1: r = &readingCh1;  label = "CHANNEL 1"; break;
+    case 2: r = &readingCh2;  label = "CHANNEL 2"; break;
+  }
+  displayPage++;
+
+  display.clearDisplay();
+
+  // Header
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("-- ");
+  display.print(label);
+  display.println(" --");
+
+  // Voltage
+  display.setCursor(0, 14);
+  display.printf("Voltage: %.1f V", r->voltage);
+
+  // Current
+  display.setCursor(0, 26);
+  display.printf("Current: %.2f A", r->current);
+
+  // Power
+  display.setCursor(0, 38);
+  display.printf("Power:   %.1f W", r->realPower);
+
+  // Energy
+  display.setCursor(0, 50);
+  display.printf("Energy: %.3f kWh", r->energyKwh);
+
+  display.display();
 }
 
 // ----------------------
@@ -208,6 +288,9 @@ void setup() {
   Serial.println("========================================");
   Serial.println();
 
+  // Initialize OLED display
+  setupDisplay();
+
   // Initialize sensors
   setupSensors();
 
@@ -231,6 +314,9 @@ void loop() {
 
   // Print to serial
   printReadings();
+
+  // Update OLED display
+  updateDisplay();
 
   delay(READING_INTERVAL_MS);
 }
