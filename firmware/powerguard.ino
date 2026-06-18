@@ -9,8 +9,17 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
 #include "EmonLib.h"
 #include "config.h"
+
+// ----------------------
+// MQTT Client
+// ----------------------
+
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
 
 // ----------------------
 // OLED Display
@@ -76,6 +85,80 @@ void setupWiFi() {
   Serial.println();
   Serial.print("[WiFi] Connected! IP: ");
   Serial.println(WiFi.localIP());
+}
+
+// ----------------------
+// MQTT Connection
+// ----------------------
+
+void setupMQTT() {
+  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  mqttClient.setBufferSize(512);  // Increase buffer for JSON payloads
+}
+
+void connectMQTT() {
+  while (!mqttClient.connected()) {
+    Serial.print("[MQTT] Connecting to broker...");
+
+    // Connect with Last Will and Testament (LWT)
+    // If ESP32 goes offline, broker publishes "offline" to status topic
+    bool connected;
+    if (strlen(MQTT_USER) > 0) {
+      connected = mqttClient.connect(
+        DEVICE_ID, MQTT_USER, MQTT_PASSWORD,
+        TOPIC_STATUS, 1, true, "offline"
+      );
+    } else {
+      connected = mqttClient.connect(
+        DEVICE_ID,
+        TOPIC_STATUS, 1, true, "offline"
+      );
+    }
+
+    if (connected) {
+      Serial.println(" connected!");
+      // Publish online status (retained)
+      mqttClient.publish(TOPIC_STATUS, "online", true);
+    } else {
+      Serial.print(" failed (rc=");
+      Serial.print(mqttClient.state());
+      Serial.println("). Retrying in 5s...");
+      delay(5000);
+    }
+  }
+}
+
+// ----------------------
+// Publish Reading to MQTT
+// ----------------------
+
+void publishReading(const char* topic, EnergyReading* reading, const char* channel) {
+  StaticJsonDocument<256> doc;
+
+  doc["device_id"]       = DEVICE_ID;
+  doc["channel"]         = channel;
+  doc["timestamp"]       = millis() / 1000;  // Uptime in seconds (backend adds real timestamp)
+  doc["voltage_rms"]     = round(reading->voltage * 10) / 10.0;
+  doc["current_rms"]     = round(reading->current * 100) / 100.0;
+  doc["power_watts"]     = round(reading->realPower * 10) / 10.0;
+  doc["apparent_power_va"] = round(reading->apparentPower * 10) / 10.0;
+  doc["power_factor"]    = round(reading->powerFactor * 100) / 100.0;
+  doc["energy_kwh"]      = round(reading->energyKwh * 10000) / 10000.0;
+
+  char payload[256];
+  serializeJson(doc, payload);
+
+  if (mqttClient.publish(topic, payload)) {
+    Serial.printf("[MQTT] Published to %s\n", topic);
+  } else {
+    Serial.printf("[MQTT] Failed to publish to %s\n", topic);
+  }
+}
+
+void publishAllReadings() {
+  publishReading(TOPIC_MAIN, &readingMain, "main");
+  publishReading(TOPIC_CHANNEL1, &readingCh1, "channel1");
+  publishReading(TOPIC_CHANNEL2, &readingCh2, "channel2");
 }
 
 // ----------------------
@@ -296,6 +379,10 @@ void setup() {
 
   // Connect to WiFi
   setupWiFi();
+
+  // Setup MQTT
+  setupMQTT();
+  connectMQTT();
 }
 
 // ----------------------
@@ -309,11 +396,20 @@ void loop() {
     setupWiFi();
   }
 
+  // Reconnect MQTT if disconnected
+  if (!mqttClient.connected()) {
+    connectMQTT();
+  }
+  mqttClient.loop();
+
   // Read sensors
   readSensors();
 
   // Print to serial
   printReadings();
+
+  // Publish to MQTT
+  publishAllReadings();
 
   // Update OLED display
   updateDisplay();
