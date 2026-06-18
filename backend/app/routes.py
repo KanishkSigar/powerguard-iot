@@ -9,10 +9,12 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.database import db
 from app.mqtt_service import get_latest_readings, get_device_status
 from app.config import settings
+from app.report_generator import generate_monthly_report_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +142,51 @@ async def get_monthly_usage(
         "peak_day": peak_day,
         "daily_breakdown": daily_data,
     }
+
+
+# ==============================
+# Reports
+# ==============================
+
+@router.get("/reports/monthly")
+async def download_monthly_report(
+    channel: str = Query("main", description="Channel name"),
+    device_id: Optional[str] = None,
+):
+    """Download a PDF report for the current month's usage."""
+    # Re-use the existing logic to get monthly data
+    daily_data = db.get_daily_usage(channel=channel, days=30, device_id=device_id)
+    
+    month_str = datetime.utcnow().strftime("%Y-%m")
+    
+    if not daily_data:
+        data = {
+            "total_kwh": 0,
+            "avg_daily_kwh": 0,
+            "cost_inr": 0,
+            "daily_breakdown": [],
+        }
+    else:
+        total_kwh = sum(d["total_kwh"] for d in daily_data)
+        avg_daily = total_kwh / len(daily_data) if daily_data else 0
+        total_cost = total_kwh * settings.TARIFF_RATE
+        
+        data = {
+            "total_kwh": round(total_kwh, 3),
+            "avg_daily_kwh": round(avg_daily, 3),
+            "cost_inr": round(total_cost, 2),
+            "daily_breakdown": daily_data,
+        }
+        
+    pdf_buffer = generate_monthly_report_pdf(month_str, channel, data)
+    
+    filename = f"PowerGuard_Report_{channel}_{month_str}.pdf"
+    
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 # ==============================
