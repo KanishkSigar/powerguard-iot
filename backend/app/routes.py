@@ -17,6 +17,7 @@ from app.config import settings
 from app.report_generator import generate_monthly_report_pdf
 from app.forecasting import generate_forecast
 from app.websocket_manager import manager
+from app.data_export import generate_csv_export
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,31 @@ async def get_history(
         "count": len(data),
         "readings": data,
     }
+
+@router.get("/history/export")
+async def export_history_csv(
+    channel: str = Query("main", description="Channel name"),
+    range: str = Query("-24h", description="Time range (e.g., -1h, -24h, -7d, -30d)"),
+    device_id: Optional[str] = None,
+):
+    """Download historical data as a CSV file."""
+    valid_ranges = ["-1h", "-6h", "-12h", "-24h", "-7d", "-30d"]
+    if range not in valid_ranges:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid range. Use one of: {', '.join(valid_ranges)}"
+        )
+
+    data = db.get_history(channel=channel, start=range, device_id=device_id)
+    csv_buffer = generate_csv_export(data)
+    
+    filename = f"powerguard_export_{channel}_{range.strip('-')}.csv"
+    
+    return StreamingResponse(
+        iter([csv_buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 # ==============================
