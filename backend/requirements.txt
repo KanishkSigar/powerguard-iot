@@ -31,3 +31,6 @@ aiosmtplib==3.0.1
 
 # Reporting
 reportlab==4.0.4
+
+# ML Forecasting
+statsmodels==0.14.2

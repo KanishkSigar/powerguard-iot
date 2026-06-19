@@ -15,6 +15,7 @@ from app.database import db
 from app.mqtt_service import get_latest_readings, get_device_status
 from app.config import settings
 from app.report_generator import generate_monthly_report_pdf
+from app.forecasting import generate_forecast
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +235,28 @@ async def get_peak_hours(
         "hourly_breakdown": hourly_avg,
         "peak_hours": peak,
         "off_peak_hours": off_peak,
+    }
+
+
+# ==============================
+# Forecasting (Advanced ML)
+# ==============================
+
+@router.get("/analytics/forecast")
+async def get_forecast(
+    channel: str = Query("main", description="Channel name"),
+    device_id: Optional[str] = None,
+):
+    """Predict energy usage for the upcoming week based on historical data."""
+    # Fetch last 30 days to train the model
+    daily_data = db.get_daily_usage(channel=channel, days=30, device_id=device_id)
+    
+    forecast_data = generate_forecast(daily_data, days_to_predict=7)
+    
+    return {
+        "channel": channel,
+        "days_predicted": 7,
+        "forecast": forecast_data
     }
 
 
