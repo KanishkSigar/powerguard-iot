@@ -141,9 +141,125 @@ function updateConnectionStatus(connected) {
 // Real-time Updates
 // ----------------------
 
+let ws = null;
+
 function startRealtimeUpdates() {
+    // Initial fetch to get latest values immediately
     updateRealtime();
-    refreshTimer = setInterval(updateRealtime, CONFIG.refreshInterval);
+    
+    // Connect WebSocket
+    connectWebSocket();
+}
+
+function connectWebSocket() {
+    let wsUrl = CONFIG.apiUrl.replace(/^http/, 'ws') + '/api/ws/realtime';
+    
+    ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+        console.log('WebSocket connected');
+        updateConnectionStatus(true);
+        if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+    };
+    
+    ws.onmessage = (event) => {
+        try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'reading') {
+                handleLiveReading(msg.data);
+            } else if (msg.type === 'status') {
+                updateDeviceStatus(msg.status === 'online' ? 'online' : 'offline');
+            }
+        } catch (e) {
+            console.error('WebSocket parsing error:', e);
+        }
+    };
+    
+    ws.onclose = () => {
+        console.log('WebSocket disconnected, falling back to polling...');
+        updateConnectionStatus(false);
+        if (!refreshTimer) {
+            refreshTimer = setInterval(updateRealtime, CONFIG.refreshInterval);
+        }
+        setTimeout(connectWebSocket, 5000);
+    };
+    
+    ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        ws.close();
+    };
+}
+
+function handleLiveReading(reading) {
+    if (!reading) return;
+    
+    updateConnectionStatus(true);
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('last-updated').textContent = `Last updated: ${now}`;
+    
+    const channelKey = reading.channel.split('/').pop() || 'main';
+    
+    // Update UI if it's the main channel
+    if (channelKey === 'main') {
+        animateValue('rt-voltage', parseFloat(reading.voltage_rms).toFixed(1));
+        animateValue('rt-current', parseFloat(reading.current_rms).toFixed(2));
+        animateValue('rt-power', parseFloat(reading.power_watts).toFixed(0));
+        animateValue('rt-energy', parseFloat(reading.energy_kwh).toFixed(4));
+
+        const pf = parseFloat(reading.power_factor);
+        document.getElementById('rt-pf').textContent = pf.toFixed(2);
+        updatePowerFactorLabel(pf);
+
+        const energyKwh = parseFloat(reading.energy_kwh);
+        const cost = (energyKwh * CONFIG.tariffRate).toFixed(2);
+        document.getElementById('rt-cost').textContent = `₹ ${cost}`;
+        const monthlyCostEl = document.getElementById('rt-monthly-cost');
+        if (monthlyCostEl) {
+            monthlyCostEl.textContent = `₹ ${(cost * 30).toFixed(2)}`;
+        }
+    }
+    
+    // Update chart data
+    realtimeHistory.labels.push(now);
+    
+    ['main', 'channel1', 'channel2'].forEach(ch => {
+        if (!realtimeHistory[ch]) realtimeHistory[ch] = [];
+        if (ch === channelKey) {
+            realtimeHistory[ch].push(reading.power_watts || 0);
+        } else {
+            const lastVal = realtimeHistory[ch].length > 0 ? realtimeHistory[ch][realtimeHistory[ch].length - 1] : 0;
+            realtimeHistory[ch].push(lastVal);
+        }
+    });
+
+    if (realtimeHistory.labels.length > realtimeHistory.maxPoints) {
+        realtimeHistory.labels.shift();
+        ['main', 'channel1', 'channel2'].forEach(ch => {
+            if (realtimeHistory[ch].length > realtimeHistory.maxPoints) {
+                realtimeHistory[ch].shift();
+            }
+        });
+    }
+
+    renderOrUpdateRealtimeChart();
+}
+
+function renderOrUpdateRealtimeChart() {
+    const ctx = document.getElementById('realtime-chart');
+    if (!ctx) return;
+
+    if (charts.realtime) {
+        charts.realtime.data.labels = realtimeHistory.labels;
+        charts.realtime.data.datasets[0].data = realtimeHistory.main || [];
+        charts.realtime.data.datasets[1].data = realtimeHistory.channel1 || [];
+        charts.realtime.data.datasets[2].data = realtimeHistory.channel2 || [];
+        charts.realtime.update('none');
+    } else {
+        updateRealtimeChart({});
+    }
 }
 
 async function updateRealtime() {
