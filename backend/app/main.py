@@ -6,6 +6,7 @@ and REST API endpoints.
 """
 
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -42,7 +43,8 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 50)
 
     # Start MQTT subscriber
-    mqtt_service.start()
+    loop = asyncio.get_running_loop()
+    mqtt_service.start(loop=loop)
     logger.info("MQTT subscriber started.")
 
     yield

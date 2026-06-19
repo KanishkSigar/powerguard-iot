@@ -8,12 +8,14 @@ devices and writes them to InfluxDB.
 import json
 import logging
 import threading
+import asyncio
 
 import paho.mqtt.client as mqtt
 
 from app.config import settings
 from app.database import db
 from app.alert_service import alert_service
+from app.websocket_manager import manager
 
 # Lazy import to avoid circular dependency
 _detector = None
@@ -76,6 +78,11 @@ def on_message(client, userdata, msg):
         if channel_or_status == "status":
             device_status[device_id] = payload
             logger.info("Device %s is now %s", device_id, payload)
+            if mqtt_service.loop:
+                asyncio.run_coroutine_threadsafe(
+                    manager.broadcast({"type": "status", "device_id": device_id, "status": payload}), 
+                    mqtt_service.loop
+                )
             return
 
         # Handle sensor reading messages
@@ -100,6 +107,13 @@ def on_message(client, userdata, msg):
 
         # Write to InfluxDB
         db.write_reading(data)
+
+        # Broadcast to WebSockets
+        if mqtt_service.loop:
+            asyncio.run_coroutine_threadsafe(
+                manager.broadcast({"type": "reading", "data": data}), 
+                mqtt_service.loop
+            )
 
         # Update channel history buffer
         hist_key = f"{device_id}/{channel}"
@@ -158,9 +172,11 @@ class MQTTService:
         self.client.on_message = on_message
         self.client.on_disconnect = on_disconnect
         self._thread: threading.Thread | None = None
+        self.loop = None
 
-    def start(self):
+    def start(self, loop=None):
         """Start the MQTT subscriber in a background thread."""
+        self.loop = loop
         logger.info("Starting MQTT subscriber...")
 
         try:
