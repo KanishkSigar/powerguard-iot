@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
 from app.database import db
@@ -16,6 +16,7 @@ from app.mqtt_service import get_latest_readings, get_device_status
 from app.config import settings
 from app.report_generator import generate_monthly_report_pdf
 from app.forecasting import generate_forecast
+from app.websocket_manager import manager
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,22 @@ async def get_realtime_data(device_id: Optional[str] = None):
         "channels": readings,
         "last_updated": datetime.utcnow().isoformat(),
     }
+
+
+# ==============================
+# WebSockets
+# ==============================
+
+@router.websocket("/ws/realtime")
+async def websocket_realtime(websocket: WebSocket):
+    """WebSocket endpoint for real-time sensor data streaming."""
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection open, wait for client disconnect
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 
 # ==============================
