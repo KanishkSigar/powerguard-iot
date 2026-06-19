@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRangeButtons();
     initSettings();
     initReports();
+    initExport();
     initMobileMenu();
     startRealtimeUpdates();
     loadSettings();
@@ -591,6 +592,21 @@ function initReports() {
         btn.addEventListener('click', () => {
             const channel = document.getElementById('usage-channel')?.value || 'main';
             window.open(`${CONFIG.apiUrl}/api/reports/monthly?channel=${channel}`, '_blank');
+        });
+    }
+}
+
+// ----------------------
+// Export
+// ----------------------
+
+function initExport() {
+    const btn = document.getElementById('btn-export-csv');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            const channel = document.getElementById('hist-channel')?.value || 'main';
+            const range = document.querySelector('.range-btn.active')?.dataset.range || '-24h';
+            window.open(`${CONFIG.apiUrl}/api/history/export?channel=${channel}&range=${range}`, '_blank');
         });
     }
 }

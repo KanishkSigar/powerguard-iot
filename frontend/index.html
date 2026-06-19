@@ -184,7 +184,7 @@
                 <div class="page" id="page-history">
                     <div class="section-header">
                         <h3>Historical Data</h3>
-                        <div class="filter-group">
+                        <div class="filter-group" style="display: flex; gap: 10px; align-items: center;">
                             <select id="hist-channel" class="select-input">
                                 <option value="main">Main Line</option>
                                 <option value="channel1">Channel 1</option>
@@ -198,6 +198,9 @@
                                 <button class="range-btn" data-range="-7d">7D</button>
                                 <button class="range-btn" data-range="-30d">30D</button>
                             </div>
+                            <button id="btn-export-csv" class="btn" style="display: flex; gap: 5px; align-items: center;">
+                                <i data-lucide="download"></i> Export CSV
+                            </button>
                         </div>
                     </div>
 
