@@ -397,10 +397,13 @@ async function loadUsageData() {
 
     // Load daily usage
     const dailyData = await apiGet(`/api/usage/daily?channel=${channel}&days=30`);
+    const forecastResponse = await apiGet(`/api/analytics/forecast?channel=${channel}`);
     if (!dailyData) return;
 
     // Update summary cards
     const daily = dailyData.daily_breakdown || [];
+    const forecast = forecastResponse ? (forecastResponse.forecast || []) : [];
+    
     const today = daily.length > 0 ? daily[daily.length - 1] : null;
 
     document.getElementById('usage-today-kwh').textContent = today ? today.total_kwh.toFixed(2) : '--';
@@ -412,20 +415,48 @@ async function loadUsageData() {
     document.getElementById('usage-avg-kwh').textContent = avgKwh.toFixed(2);
     document.getElementById('usage-avg-cost').textContent = `₹ ${(avgKwh * CONFIG.tariffRate).toFixed(2)}`;
 
-    // Daily bar chart
+    // Daily bar chart with forecast line
     const labels = daily.map(d => d.date.slice(5));  // MM-DD format
     const kwh = daily.map(d => d.total_kwh);
+    
+    // Add forecast labels and data
+    const forecastLabels = forecast.map(f => f.date.slice(5));
+    const allLabels = [...labels, ...forecastLabels];
+    
+    const historicalData = [...kwh, ...Array(forecast.length).fill(null)];
+    
+    // Pad forecast line to connect with last historical point
+    const forecastDataPadded = Array(labels.length > 0 ? labels.length - 1 : 0).fill(null);
+    if (kwh.length > 0) {
+        forecastDataPadded.push(kwh[kwh.length - 1]);
+    }
+    forecastDataPadded.push(...forecast.map(f => f.forecast_kwh));
 
     renderChart('daily-usage-chart', 'dailyUsage', {
-        labels,
-        datasets: [{
-            label: 'Daily kWh',
-            data: kwh,
-            backgroundColor: kwh.map(v => v > avgKwh * 1.5 ? '#ea580c' : '#0f766e'),
-            borderColor: '#ffffff',
-            borderWidth: 1,
-            borderRadius: 4,
-        }],
+        labels: allLabels,
+        datasets: [
+            {
+                type: 'line',
+                label: 'Forecast (kWh)',
+                data: forecastDataPadded,
+                borderColor: '#4f46e5',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#4f46e5',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                type: 'bar',
+                label: 'Daily kWh',
+                data: historicalData,
+                backgroundColor: historicalData.map(v => v !== null && v > avgKwh * 1.5 ? '#ea580c' : '#0f766e'),
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                borderRadius: 4,
+            }
+        ],
     }, 'Energy (kWh)', 'bar');
 
     // Listen for channel change
