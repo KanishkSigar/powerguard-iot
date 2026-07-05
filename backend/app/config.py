@@ -47,6 +47,7 @@ class Settings:
     # Server
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
+    CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
 
 
 settings = Settings()
