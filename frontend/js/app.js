@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     startRealtimeUpdates();
     loadSettings();
+
+    const refreshBtn = document.getElementById('btn-manual-refresh');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            updateRealtime();
+        });
+    }
 });
 
 // ----------------------

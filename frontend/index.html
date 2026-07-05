@@ -83,7 +83,12 @@
                 </button>
                 <h2 class="page-title" id="page-title">Real-time Monitor</h2>
                 <div class="topbar-right">
-                    <span class="last-updated" id="last-updated">Last updated: --</span>
+                    <span class="last-updated" id="last-updated" style="display: flex; align-items: center; gap: 5px;">
+                        <span>Last updated: --</span>
+                        <button id="btn-manual-refresh" class="btn btn-ghost" style="padding: 2px; height: auto;" title="Force Refresh">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </span>
                     <span class="connection-indicator" id="connection-indicator" title="API Connection">
                         <span class="pulse-dot"></span>
                         <span id="connection-uptime" style="margin-left: 5px; font-size: 12px; font-weight: normal; color: var(--text-secondary); display: none;"></span>
