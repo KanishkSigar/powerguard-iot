@@ -10,10 +10,10 @@ PowerGuard IoT is a low-cost, intelligent energy monitoring system that tracks r
 
 - **Real-time Monitoring** — Live voltage, current, power readings via web dashboard
 - **Historical Analytics** — Daily/monthly consumption tracking with cost estimation
+- **Advanced Forecasting** — Predictive ML forecasting of future energy usage
+- **Automated Reporting** — Downloadable monthly PDF reports and CSV data exports
+- **Real-time Streaming** — WebSocket-based instantaneous live data updates
 - **Anomaly Detection** — ML-powered detection of unusual power patterns
-- **Smart Alerts** — Telegram and email notifications for anomalies
-- **Multi-Channel** — Monitor multiple appliances/circuits independently
-- **Beautiful Dashboard** — Modern, responsive web UI with dark mode
 
 ## 🏗️ Architecture
 
