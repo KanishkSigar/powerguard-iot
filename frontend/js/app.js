@@ -129,12 +129,23 @@ async function apiGet(endpoint) {
 
 function updateConnectionStatus(connected) {
     const dot = document.querySelector('.pulse-dot');
-    const statusEl = document.getElementById('device-status');
+    const uptimeEl = document.getElementById('connection-uptime');
 
     if (connected) {
         dot.classList.remove('disconnected');
+        if (!connectionStartTime) {
+            connectionStartTime = new Date();
+            if (uptimeEl) uptimeEl.style.display = 'inline-block';
+            startUptimeCounter();
+        }
     } else {
         dot.classList.add('disconnected');
+        connectionStartTime = null;
+        if (uptimeInterval) clearInterval(uptimeInterval);
+        if (uptimeEl) {
+            uptimeEl.style.display = 'none';
+            uptimeEl.textContent = '';
+        }
     }
 }
 
@@ -143,6 +154,21 @@ function updateConnectionStatus(connected) {
 // ----------------------
 
 let ws = null;
+let connectionStartTime = null;
+let uptimeInterval = null;
+
+function startUptimeCounter() {
+    if (uptimeInterval) clearInterval(uptimeInterval);
+    uptimeInterval = setInterval(() => {
+        const uptimeEl = document.getElementById('connection-uptime');
+        if (connectionStartTime && uptimeEl) {
+            const diff = Math.floor((new Date() - connectionStartTime) / 1000);
+            const m = Math.floor(diff / 60);
+            const s = diff % 60;
+            uptimeEl.textContent = `Uptime: ${m}m ${s}s`;
+        }
+    }, 1000);
+}
 
 function startRealtimeUpdates() {
     // Initial fetch to get latest values immediately
