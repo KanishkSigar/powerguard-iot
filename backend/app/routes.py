@@ -5,6 +5,9 @@ REST API endpoints for the web dashboard.
 """
 
 import logging
+import json
+import sys
+import platform
 from datetime import datetime
 from typing import Optional
 
@@ -385,3 +388,17 @@ async def update_thresholds(
 
     logger.info("Updated threshold settings: %s", _threshold_settings)
     return {"status": "updated", "settings": _threshold_settings}
+
+# ==============================
+# System Info
+# ==============================
+
+@router.get("/system/info")
+async def system_info():
+    """Get backend server system information."""
+    return {
+        "status": "online",
+        "python_version": sys.version,
+        "platform": platform.platform(),
+        "timestamp": datetime.utcnow().isoformat()
+    }
