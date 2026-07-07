@@ -25,6 +25,7 @@ class Settings:
     INFLUXDB_TOKEN: str = os.getenv("INFLUXDB_TOKEN", "my-super-secret-token")
     INFLUXDB_ORG: str = os.getenv("INFLUXDB_ORG", "powerguard")
     INFLUXDB_BUCKET: str = os.getenv("INFLUXDB_BUCKET", "energy_data")
+    INFLUXDB_RETENTION_DAYS: int = int(os.getenv("INFLUXDB_RETENTION_DAYS", "30"))
 
     # Tariff
     TARIFF_RATE: float = float(os.getenv("TARIFF_RATE", "6.50"))
