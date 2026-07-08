@@ -2,7 +2,7 @@
 
 # Web Framework
 fastapi==0.115.0
-uvicorn[standard]==0.30.0
+uvicorn[standard]==0.51.0
 
 # MQTT Client
 paho-mqtt==1.6.1
