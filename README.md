@@ -106,3 +106,11 @@ The system uses a hierarchical topic structure for communication:
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## 📚 Documentation Index
+
+For deep dives into the system, see the `docs/` folder:
+- [Architecture](docs/architecture.md)
+- [API Reference](docs/api_reference.md)
+- [Frontend Setup](docs/frontend_setup.md)
+- [Backend Setup](docs/backend_setup.md)
