@@ -37,3 +37,6 @@ statsmodels==0.14.2
 
 # WebSockets
 websockets==13.0.1
+
+# System Monitoring
+psutil==5.9.8
