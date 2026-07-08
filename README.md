@@ -114,3 +114,5 @@ For deep dives into the system, see the `docs/` folder:
 - [API Reference](docs/api_reference.md)
 - [Frontend Setup](docs/frontend_setup.md)
 - [Backend Setup](docs/backend_setup.md)
+
+[![Python Backend CI](https://github.com/KanishkSigar/powerguard-iot/actions/workflows/python-app.yml/badge.svg)](https://github.com/KanishkSigar/powerguard-iot/actions)
