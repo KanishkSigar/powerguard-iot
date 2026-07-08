@@ -118,3 +118,5 @@ if __name__ == "__main__":
         reload=True,
         log_level="info",
     )
+
+# Note: Ensure graceful shutdown of database connections in lifespan
