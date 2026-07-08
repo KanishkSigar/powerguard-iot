@@ -17,7 +17,7 @@ python-dotenv==1.0.1
 pydantic==2.9.0
 
 # CORS
-starlette==0.38.0
+starlette==1.3.1
 
 # ML / Anomaly Detection (Phase 7)
 scikit-learn==1.5.0
