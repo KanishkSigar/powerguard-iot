@@ -26,7 +26,7 @@ pandas==2.2.0
 joblib==1.4.2
 
 # Alerts (Phase 8)
-python-telegram-bot==21.3
+python-telegram-bot==22.8
 aiosmtplib==3.0.1
 
 # Reporting
