@@ -33,7 +33,7 @@ aiosmtplib==3.0.1
 reportlab==4.0.4
 
 # ML Forecasting
-statsmodels==0.14.2
+statsmodels==0.14.6
 
 # WebSockets
 websockets==13.0.1
