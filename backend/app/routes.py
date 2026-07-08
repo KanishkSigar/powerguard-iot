@@ -402,3 +402,5 @@ async def system_info():
         "platform": platform.platform(),
         "timestamp": datetime.utcnow().isoformat()
     }
+
+# Endpoints in this file are registered to the main FastAPI application router.
