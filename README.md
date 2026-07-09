@@ -1,21 +1,21 @@
-# ⚡ PowerGuard IoT
+# PowerGuard IoT
 
-> Smart Energy Meter with Anomaly Detection — An IoT-based energy monitoring system
+> Smart Energy Meter with Anomaly Detection - An IoT-based energy monitoring system
 
-## 🎯 Overview
+## Overview
 
 PowerGuard IoT is a low-cost, intelligent energy monitoring system that tracks real-time power consumption, logs historical usage data, detects anomalies using machine learning, and alerts users through Telegram and email.
 
-## ✨ Features
+## Features
 
-- **Real-time Monitoring** — Live voltage, current, power readings via web dashboard
-- **Historical Analytics** — Daily/monthly consumption tracking with cost estimation
-- **Advanced Forecasting** — Predictive ML forecasting of future energy usage
-- **Automated Reporting** — Downloadable monthly PDF reports and CSV data exports
-- **Real-time Streaming** — WebSocket-based instantaneous live data updates
-- **Anomaly Detection** — ML-powered detection of unusual power patterns
+- **Real-time Monitoring** - Live voltage, current, power readings via web dashboard
+- **Historical Analytics** - Daily/monthly consumption tracking with cost estimation
+- **Advanced Forecasting** - Predictive ML forecasting of future energy usage
+- **Automated Reporting** - Downloadable monthly PDF reports and CSV data exports
+- **Real-time Streaming** - WebSocket-based instantaneous live data updates
+- **Anomaly Detection** - ML-powered detection of unusual power patterns
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ESP32 + Sensors → MQTT → FastAPI Backend → InfluxDB
@@ -24,7 +24,7 @@ ESP32 + Sensors → MQTT → FastAPI Backend → InfluxDB
                                          → Telegram / Email Alerts
 ```
 
-## 🧩 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -37,7 +37,7 @@ ESP32 + Sensors → MQTT → FastAPI Backend → InfluxDB
 | Alerts | Telegram Bot API, SMTP |
 | Deployment | Docker Compose |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 powerguard-iot/
@@ -51,7 +51,7 @@ powerguard-iot/
 └── README.md
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 - Docker and Docker Compose
@@ -95,19 +95,19 @@ cd ml
 python train_model.py
 ```
 
-## 📡 MQTT Topic Structure
+## MQTT Topic Structure
 
 The system uses a hierarchical topic structure for communication:
 
-- `home/energy/<device_id>/<channel>` — Energy readings (JSON payload)
+- `home/energy/<device_id>/<channel>` - Energy readings (JSON payload)
   - Channels: `main`, `channel1`, `channel2`
-- `home/energy/<device_id>/status` — Device status (`online`/`offline`)
+- `home/energy/<device_id>/status` - Device status (`online`/`offline`)
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📚 Documentation Index
+## Documentation Index
 
 For deep dives into the system, see the `docs/` folder:
 - [Architecture](docs/architecture.md)
