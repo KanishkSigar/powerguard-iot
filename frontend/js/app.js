@@ -35,6 +35,7 @@ let realtimeHistory = {
 // ----------------------
 
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initNavigation();
     initRangeButtons();
     initSettings();
@@ -433,6 +434,18 @@ function updateRealtimeChart(channels) {
         charts.realtime.data.datasets[2].data = realtimeHistory.channel2 || [];
         charts.realtime.update('none');  // No animation for smooth updates
     } else {
+        const canvasCtx = ctx.getContext('2d');
+        const getGrad = (color) => {
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            const grad = canvasCtx.createLinearGradient(0, 0, 0, 250);
+            grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.45)`);
+            grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.0)`);
+            return grad;
+        };
+
         charts.realtime = new Chart(ctx, {
             type: 'line',
             data: {
@@ -442,7 +455,7 @@ function updateRealtimeChart(channels) {
                         label: 'Main Line',
                         data: realtimeHistory.main || [],
                         borderColor: '#0f766e',
-                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                        backgroundColor: getGrad('#0f766e'),
                         fill: true,
                         tension: 0.4,
                         borderWidth: 2,
@@ -452,7 +465,7 @@ function updateRealtimeChart(channels) {
                         label: 'Channel 1',
                         data: realtimeHistory.channel1 || [],
                         borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        backgroundColor: getGrad('#4f46e5'),
                         fill: true,
                         tension: 0.4,
                         borderWidth: 2,
@@ -462,7 +475,7 @@ function updateRealtimeChart(channels) {
                         label: 'Channel 2',
                         data: realtimeHistory.channel2 || [],
                         borderColor: '#ea580c',
-                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        backgroundColor: getGrad('#ea580c'),
                         fill: true,
                         tension: 0.4,
                         borderWidth: 2,
@@ -764,6 +777,31 @@ function renderChart(canvasId, chartKey, chartData, yLabel, type = 'line') {
         charts[chartKey].destroy();
     }
 
+    // Apply linear gradients to line charts dynamically for a premium look
+    if (type === 'line' && chartData.datasets) {
+        const canvasCtx = ctx.getContext('2d');
+        chartData.datasets.forEach(dataset => {
+            if (dataset.borderColor && !dataset.backgroundColorGradApplied) {
+                const border = dataset.borderColor;
+                const gradient = canvasCtx.createLinearGradient(0, 0, 0, 300);
+                if (border.startsWith('#')) {
+                    const hex = border.replace('#', '');
+                    const r = parseInt(hex.substring(0, 2), 16);
+                    const g = parseInt(hex.substring(2, 4), 16);
+                    const b = parseInt(hex.substring(4, 6), 16);
+                    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.45)`);
+                    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.0)`);
+                } else {
+                    gradient.addColorStop(0, 'rgba(15, 118, 110, 0.45)');
+                    gradient.addColorStop(1, 'rgba(15, 118, 110, 0.0)');
+                }
+                dataset.backgroundColor = gradient;
+                dataset.fill = true;
+                dataset.backgroundColorGradApplied = true;
+            }
+        });
+    }
+
     charts[chartKey] = new Chart(ctx, {
         type,
         data: chartData,
@@ -772,6 +810,13 @@ function renderChart(canvasId, chartKey, chartData, yLabel, type = 'line') {
 }
 
 function getChartOptions(yLabel, animate = false) {
+    const isDark = document.body.classList.contains('dark');
+    const labelColor = isDark ? '#94a3b8' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9';
+    const tickColor = isDark ? '#64748b' : '#94a3b8';
+    const tooltipBg = isDark ? '#1e293b' : '#0f172a';
+    const tooltipBorder = isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0';
+
     return {
         responsive: true,
         maintainAspectRatio: false,
@@ -784,7 +829,7 @@ function getChartOptions(yLabel, animate = false) {
             legend: {
                 display: true,
                 labels: {
-                    color: '#475569',
+                    color: labelColor,
                     font: { family: 'Inter', size: 12 },
                     usePointStyle: true,
                     pointStyle: 'rect',
@@ -792,11 +837,11 @@ function getChartOptions(yLabel, animate = false) {
                 },
             },
             tooltip: {
-                backgroundColor: '#0f172a',
+                backgroundColor: tooltipBg,
                 titleColor: '#ffffff',
                 bodyColor: '#e2e8f0',
-                borderColor: '#e2e8f0',
-                borderWidth: 0,
+                borderColor: tooltipBorder,
+                borderWidth: isDark ? 1 : 0,
                 padding: 12,
                 cornerRadius: 4,
                 titleFont: { family: 'Inter', weight: '600' },
@@ -806,28 +851,28 @@ function getChartOptions(yLabel, animate = false) {
         scales: {
             x: {
                 ticks: {
-                    color: '#94a3b8',
+                    color: tickColor,
                     font: { family: 'Inter', size: 11 },
                     maxRotation: 0,
                     maxTicksLimit: 12,
                 },
                 grid: {
-                    color: '#f1f5f9',
+                    color: gridColor,
                 },
             },
             y: {
                 title: {
                     display: true,
                     text: yLabel,
-                    color: '#475569',
+                    color: labelColor,
                     font: { family: 'Inter', size: 12, weight: '500' },
                 },
                 ticks: {
-                    color: '#94a3b8',
+                    color: tickColor,
                     font: { family: 'Inter', size: 11 },
                 },
                 grid: {
-                    color: '#f1f5f9',
+                    color: gridColor,
                 },
             },
         },
@@ -885,4 +930,44 @@ function resetSettings() {
     document.getElementById('set-tariff').value = '6.50';
     document.getElementById('set-power-threshold').value = '2000';
     document.getElementById('set-left-on').value = '7200';
+}
+
+function initTheme() {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Apply stored theme on load
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        if (themeIcon) {
+            themeIcon.setAttribute('data-lucide', 'sun');
+        }
+    } else {
+        document.body.classList.remove('dark');
+        if (themeIcon) {
+            themeIcon.setAttribute('data-lucide', 'moon');
+        }
+    }
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (themeIcon) {
+                themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+
+            // Re-render current page charts to adapt to the new theme's color variables
+            if (currentPage) {
+                loadPageData(currentPage);
+            }
+        });
+    }
 }
